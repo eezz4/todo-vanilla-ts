@@ -1,16 +1,13 @@
+import { makeTodoModule } from "./Todo/index";
 import "./index.css";
+import { createElementClassname } from "./module/domUtil/createElementExtend";
+
 const root = document.getElementById("root");
 if (root) {
-  makeScreen(root);
-}
-
-export function makeScreen(root: HTMLElement) {
-  const p = document.createElement("p");
-  p.textContent = "hi";
-
-  root.appendChild(p);
-
-  root.addEventListener("click", () => {
-    alert("clicked!");
-  });
+  const todoModuleConatiner = createElementClassname(
+    root,
+    "div",
+    "todoModuleConatiner"
+  );
+  makeTodoModule(todoModuleConatiner);
 }
