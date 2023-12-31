@@ -1,5 +1,3 @@
-// ui update식으로.. 바꿔야됨
-
 import { createElementClassname } from "../module/domUtil/createElementExtend";
 import { createTodoStore } from "./store/createTodoStore";
 import { createTodoInputView } from "./View/1.InputView/index";
