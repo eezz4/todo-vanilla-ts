@@ -4,7 +4,7 @@ import { gState } from "./gState";
 const gDragElement = createElementClassname(
   document.body,
   "div",
-  "globalDragElement"
+  "gDragElement"
 );
 
 function reset() {

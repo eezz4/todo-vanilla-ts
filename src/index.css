@@ -84,13 +84,13 @@ body,
 .todoElement.dragTo {
   border-bottom: 10px solid green;
 }
-.globalDragElement {
+.gDragElement {
   position: absolute;
   opacity: 0.5;
   background-color: white;
   pointer-events: none;
 }
-.globalDragElement > * {
+.gDragElement > * {
   border: 1px solid green;
 }
 
