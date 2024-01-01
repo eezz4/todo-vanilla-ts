@@ -52,8 +52,9 @@ function endDrag() {
 
   ids.reset();
 
+  if (gState.dispatchSuccessFlag) gState.previewCancel = null;
   gState.previewCancel?.();
-  gState.previewCancel = null;
+  gState.dispatchSuccessFlag = false;
 }
 
 function handleDragMouseMove(e: MouseEvent) {

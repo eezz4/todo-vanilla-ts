@@ -38,32 +38,30 @@ export function applyDragFromTo(
     if (!gState.run) return;
     if (e.target === null) return;
     const target = e.target as HTMLElement;
+    const { fromId, toId } = successIds(target, skipCallback);
+    if (toId === null) return;
+    if (fromId === toId) return;
 
-    if (skipCallback(target)) {
-      // skip 요소 위에서는 Preview 기록 적용
-      const { from, previewTo } = ids.getIds();
-      if (previewTo === null) return;
-      if (from === previewTo) return;
-      targetElement.dispatchEvent(
-        new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
-          detail: { fromId: from, toId: previewTo },
-          bubbles: true,
-        })
-      );
-    } else {
-      const { from, to } = ids.getIds();
-      if (to === null) return;
-      if (from === to) return;
-      targetElement.dispatchEvent(
-        new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
-          detail: { fromId: from, toId: to },
-          bubbles: true,
-        })
-      );
-    }
+    gState.dispatchSuccessFlag = true;
+    targetElement.dispatchEvent(
+      new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
+        detail: { fromId, toId },
+        bubbles: true,
+      })
+    );
   };
-
   targetElement.onclick = handleClickDelegationCtrl;
+}
+
+function successIds(target: HTMLElement, skipCallback: SkipCondCallback) {
+  if (skipCallback(target)) {
+    // skip 요소 위에서는 Preview 기록 적용
+    const { from, previewTo } = ids.getIds();
+    return { fromId: from, toId: previewTo };
+  } else {
+    const { from, to } = ids.getIds();
+    return { fromId: from, toId: to };
+  }
 }
 
 function tryRegistTo(targetElement: HTMLElement, toId: string) {
