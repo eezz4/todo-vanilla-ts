@@ -1,11 +1,12 @@
 const CLASS_NAME = {
   from: "dragFrom",
   to: "dragTo",
-};
+} as const;
 
+type NullableHTMLElment = HTMLElement | null;
 const element = {
-  from: null as HTMLElement | null,
-  to: null as HTMLElement | null,
+  from: null as NullableHTMLElment,
+  to: null as NullableHTMLElment,
 };
 
 function addFrom(fromElement: HTMLElement) {

@@ -1,9 +1,8 @@
-import { ctrl } from "./units/controller";
-import { ids } from "./units/ids";
-
 import { DRAG_CUSTOM_EVENT } from "./DRAG_CUSTOM_EVENT";
+import { ctrl } from "./units/controller";
 import { gState } from "./units/gState";
 import { highlight } from "./units/highlight";
+import { ids } from "./units/ids";
 
 interface SkipCondCallback {
   (element: HTMLElement): boolean;
@@ -49,7 +48,7 @@ export function applyDragFromTo(
       })
     );
     ids.reset();
-    gState.previewCancel = undefined;
+    gState.previewCancel = null;
   };
 
   targetElement.onclick = handleClickDelegationCtrl;
@@ -70,6 +69,7 @@ function tryRegistTo(targetElement: HTMLElement, toId: string) {
         bubbles: true,
       })
     );
+
     if (!gState.previewCancel)
       gState.previewCancel = () => {
         targetElement.dispatchEvent(

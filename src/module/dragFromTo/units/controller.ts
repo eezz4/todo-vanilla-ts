@@ -12,6 +12,7 @@ function tryStartDragAndRegistFrom(
   if (gState.readyRunId) return;
 
   window.addEventListener("mouseup", endDrag);
+  window.addEventListener("keydown", escEndDrag);
 
   gState.readyRunId = setTimeout(() => {
     gState.readyRunId = undefined;
@@ -29,6 +30,10 @@ function tryStartDragAndRegistFrom(
   }, runWaitTimeMs);
 }
 
+function escEndDrag(e: KeyboardEvent) {
+  if (e.key === "Escape") endDrag();
+}
+
 function endDrag() {
   if (gState.readyRunId) clearTimeout(gState.readyRunId);
   if (gState.run) setTimeout(() => (gState.delegationClick = true), 100);
@@ -38,9 +43,10 @@ function endDrag() {
   highlight.resetFrom();
   highlight.resetTo();
   dragElement.reset();
+
   window.removeEventListener("mousemove", handleDragMouseMove);
   window.removeEventListener("mouseup", endDrag);
-
+  window.removeEventListener("keydown", escEndDrag);
   gState.previewCancel?.();
 }
 

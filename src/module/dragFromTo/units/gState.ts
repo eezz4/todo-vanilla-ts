@@ -1,10 +1,11 @@
-type NullableTimeout = NodeJS.Timeout | undefined;
+type OptionalTimeout = NodeJS.Timeout | undefined;
+type NullableCallableFunction = CallableFunction | null;
 
 export const gState = {
   run: false,
-  readyRunId: undefined as NullableTimeout,
-  previewId: undefined as NullableTimeout,
-  previewCancel: undefined as CallableFunction | undefined,
+  readyRunId: undefined as OptionalTimeout,
+  previewId: undefined as OptionalTimeout,
+  previewCancel: null as NullableCallableFunction,
   delegationClick: true,
   fromOffsetX: 0,
   fromOffsetY: 0,
