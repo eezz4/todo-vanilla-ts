@@ -34,21 +34,33 @@ export function applyDragFromTo(
 
   targetElement.onmouseleave = () => handleLeave();
 
-  targetElement.onmouseup = () => {
+  targetElement.onmouseup = (e) => {
     if (!gState.run) return;
-    const { from, to } = ids.getIds();
-    if (to === null) return;
-    if (from === to) return;
-    // completed 요소도 성공 포함
+    if (e.target === null) return;
+    const target = e.target as HTMLElement;
 
-    targetElement.dispatchEvent(
-      new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
-        detail: { fromId: from, toId: to },
-        bubbles: true,
-      })
-    );
-    ids.reset();
-    gState.previewCancel = null;
+    if (skipCallback(target)) {
+      // skip 요소 위에서는 Preview 기록 적용
+      const { from, previewTo } = ids.getIds();
+      if (previewTo === null) return;
+      if (from === previewTo) return;
+      targetElement.dispatchEvent(
+        new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
+          detail: { fromId: from, toId: previewTo },
+          bubbles: true,
+        })
+      );
+    } else {
+      const { from, to } = ids.getIds();
+      if (to === null) return;
+      if (from === to) return;
+      targetElement.dispatchEvent(
+        new CustomEvent(DRAG_CUSTOM_EVENT.SUCCESS, {
+          detail: { fromId: from, toId: to },
+          bubbles: true,
+        })
+      );
+    }
   };
 
   targetElement.onclick = handleClickDelegationCtrl;
@@ -69,6 +81,7 @@ function tryRegistTo(targetElement: HTMLElement, toId: string) {
         bubbles: true,
       })
     );
+    ids.setPreviewTo(toId);
 
     if (!gState.previewCancel)
       gState.previewCancel = () => {

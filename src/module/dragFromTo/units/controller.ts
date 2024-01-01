@@ -35,7 +35,8 @@ function escEndDrag(e: KeyboardEvent) {
 }
 
 function endDrag() {
-  if (gState.readyRunId) clearTimeout(gState.readyRunId);
+  clearTimeout(gState.readyRunId);
+  clearTimeout(gState.previewId);
   if (gState.run) setTimeout(() => (gState.delegationClick = true), 100);
   gState.readyRunId = undefined;
   gState.run = false;
@@ -47,7 +48,11 @@ function endDrag() {
   window.removeEventListener("mousemove", handleDragMouseMove);
   window.removeEventListener("mouseup", endDrag);
   window.removeEventListener("keydown", escEndDrag);
+
+  ids.reset();
+
   gState.previewCancel?.();
+  gState.previewCancel = null;
 }
 
 function handleDragMouseMove(e: MouseEvent) {
