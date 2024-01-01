@@ -61,7 +61,7 @@ function reflowElement(
       completed: v.completed,
     });
     // draggable
-    applyDragFromTo(todoElement, v.id, skipElementCond, 150);
+    applyDragFromTo(todoElement, v.id, skipElementCond, 800);
     return todoElement;
   });
 
