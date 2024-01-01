@@ -1,4 +1,5 @@
 import { createElementClassname } from "../../domUtil/createElementExtend";
+import { sleep } from "../../promiseUtil/sleep";
 import { DRAG_CUSTOM_EVENT } from "../DRAG_CUSTOM_EVENT";
 import { applyDragFromTo } from "../index";
 import { gState } from "../units/gState";
@@ -18,7 +19,6 @@ const C = {
   },
 } as const;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const dispatchBubble = (
   element: HTMLElement,
   type: keyof HTMLElementEventMap
