@@ -91,7 +91,7 @@ function tryRegistTo(targetElement: HTMLElement, toId: string) {
           })
         );
       };
-  }, 1200); // 요구사항: 약 2초 -> 1.2초
+  }, 1200); // Preview 요구사항: 약 2초 -> 1.2초
 }
 
 function handleLeave() {
@@ -105,8 +105,7 @@ function handleLeave() {
 }
 
 function handleClickDelegationCtrl(e: MouseEvent) {
-  if (!gState.delegationClick) {
+  if (!gState.enableDelegationClick) {
     e.stopPropagation();
-    gState.delegationClick = true;
   }
 }

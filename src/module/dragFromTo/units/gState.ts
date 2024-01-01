@@ -6,7 +6,7 @@ export const gState = {
   readyRunId: undefined as OptionalTimeout,
   previewId: undefined as OptionalTimeout,
   previewCancel: null as NullableCallableFunction,
-  delegationClick: true,
+  enableDelegationClick: true,
   fromOffsetX: 0,
   fromOffsetY: 0,
 };

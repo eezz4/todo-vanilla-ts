@@ -16,7 +16,7 @@ function tryStartDragAndRegistFrom(
 
   gState.readyRunId = setTimeout(() => {
     gState.readyRunId = undefined;
-    gState.delegationClick = false;
+    gState.enableDelegationClick = false;
     gState.run = true;
     gState.fromOffsetX = e.offsetX;
     gState.fromOffsetY = e.offsetY;
@@ -37,7 +37,8 @@ function escEndDrag(e: KeyboardEvent) {
 function endDrag() {
   clearTimeout(gState.readyRunId);
   clearTimeout(gState.previewId);
-  if (gState.run) setTimeout(() => (gState.delegationClick = true), 100);
+  setTimeout(() => (gState.enableDelegationClick = true), 0);
+
   gState.readyRunId = undefined;
   gState.run = false;
 
