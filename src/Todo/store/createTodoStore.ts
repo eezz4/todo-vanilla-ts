@@ -7,8 +7,8 @@ export function createTodoStore() {
   let maxId = 0;
 
   const state: TodoState = {
-    items: getTestData(),
-    // items: [],
+    // items: getTestData(),
+    items: [],
     filter: "all",
   };
 
@@ -103,6 +103,7 @@ export function createTodoStore() {
 }
 
 /////////////////////////////////
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getTestData() {
   const testData = [
     {
