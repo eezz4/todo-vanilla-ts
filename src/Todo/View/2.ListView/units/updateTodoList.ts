@@ -19,7 +19,11 @@ export function updateTodoList(
     if (fromIndex === -1 || toIndex === -1)
       throw new Error(`dev error fromId:${fromId}, toId:${toId}`);
 
-    const previeweItems = arrayUtil.move(filteredItems, fromIndex, toIndex);
+    const previeweItems = arrayUtil.moveToNext(
+      filteredItems,
+      fromIndex,
+      toIndex
+    );
     reflowElement(todoListView, todoStore, previeweItems);
   });
 

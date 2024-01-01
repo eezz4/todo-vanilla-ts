@@ -83,7 +83,7 @@ export function createTodoStore() {
           if (fromIndex === -1 || toIndex === -1)
             throw new Error(`dev error: ${JSON.stringify(action.payload)}`);
 
-          arrayUtil.move(state.items, fromIndex, toIndex);
+          arrayUtil.moveToNext(state.items, fromIndex, toIndex);
         }
         break;
       default:
