@@ -5,6 +5,7 @@ const expectedHtml = removeWhitespace(`
 <div class="todoModule">
     <input class="todoInput" placeholder="What needs to be done?">
     <ul class="todoListView"></ul>
+    <divclass="gDragElement" style="pointer-events:none;"></div>
     <div class="todoInfoView">
         <span class="todoInfoLabel">0 items left</span>
         <div class="todoInfoFilter">
