@@ -76,6 +76,10 @@ body,
   text-decoration: line-through;
 }
 
+.todoElement.completed {
+  background-color: #88888888;
+}
+
 /* drag */
 .todoElement.dragFrom {
   opacity: 0.5;
@@ -88,7 +92,6 @@ body,
   position: absolute;
   opacity: 0.5;
   background-color: white;
-  pointer-events: none;
 }
 .gDragElement > * {
   border: 1px solid green;

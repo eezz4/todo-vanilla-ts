@@ -1,5 +1,5 @@
 import { createElementClassname } from "../../../module/domUtil/createElementExtend";
-import { DRAG_CUSTOM_EVENT } from "../../../module/dragFromTo/DRAG_CUSTOM_EVENT";
+import { DftCustomEvent } from "../../../module/dragFromTo/public";
 import { TodoStore } from "../../store/createTodoStore";
 import { updateTodoList } from "./units/updateTodoList";
 
@@ -21,13 +21,13 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
     });
   };
 
-  todoListView.addEventListener(DRAG_CUSTOM_EVENT.SUCCESS, (e: Event) => {
+  todoListView.addEventListener(DftCustomEvent.SUCCESS, (e: Event) => {
     todoStore.dispatch({
       type: "TodoActionMove",
       payload: (e as CustomEvent).detail,
     });
   });
-  todoListView.addEventListener(DRAG_CUSTOM_EVENT.CANCEL, () => {
+  todoListView.addEventListener(DftCustomEvent.CANCEL, () => {
     updateTodoList(todoListView, todoStore);
   });
 

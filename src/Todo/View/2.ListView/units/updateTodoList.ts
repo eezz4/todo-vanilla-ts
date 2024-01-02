@@ -1,7 +1,7 @@
 import { arrayUtil } from "../../../../module/arrayUtil/arrayUtil";
 import { addOnceEventListener } from "../../../../module/domUtil/addOnceEventListener";
-import { DRAG_CUSTOM_EVENT } from "../../../../module/dragFromTo/DRAG_CUSTOM_EVENT";
-import { applyDragFromTo } from "../../../../module/dragFromTo/index";
+import { DragFromTo } from "../../../../module/dragFromTo/index";
+import { DftCustomEvent } from "../../../../module/dragFromTo/public";
 import { TodoStore } from "../../../store/createTodoStore";
 import { createTodoElement } from "./createTodoElement";
 
@@ -10,7 +10,7 @@ export function updateTodoList(
   todoStore: TodoStore
 ) {
   // drag
-  addOnceEventListener(todoListView, DRAG_CUSTOM_EVENT.PREVIEW, (e: Event) => {
+  addOnceEventListener(todoListView, DftCustomEvent.PREVIEW, (e: Event) => {
     const filteredItems = getItemsWithFilter(todoStore);
     const { fromId, toId } = (e as CustomEvent).detail;
 
@@ -37,11 +37,21 @@ type VisibleTodoItem = {
   completed: boolean;
 };
 
+let sigleInstanceDragFromTo: DragFromTo | null = null;
+function getDragFromToSingleton(container: HTMLElement | null) {
+  if (container === null)
+    throw new Error("new DragFromTo requires a non-null container.");
+  if (sigleInstanceDragFromTo === null)
+    sigleInstanceDragFromTo = new DragFromTo(container, 800, skipElementCond);
+  return sigleInstanceDragFromTo;
+}
+
 function reflowElement(
   todoListView: HTMLElement,
   todoStore: TodoStore,
   visibleItems: VisibleTodoItem[]
 ) {
+  const dragFromToInstance = getDragFromToSingleton(todoListView.parentElement);
   // 2. reuse OR create element
   const visibleIdSet = new Set(visibleItems.map((v) => v.id));
   const todoElementMap = makeTodoElementMap(todoListView, visibleIdSet);
@@ -61,7 +71,7 @@ function reflowElement(
       completed: v.completed,
     });
     // draggable
-    applyDragFromTo(todoElement, v.id, skipElementCond, 800);
+    dragFromToInstance.applyDragFromTo(todoElement, v.id);
     return todoElement;
   });
 

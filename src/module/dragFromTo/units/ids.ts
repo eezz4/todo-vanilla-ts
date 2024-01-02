@@ -1,44 +1,43 @@
 type NullableString = string | null;
-const id = {
-  from: null as NullableString,
-  to: null as NullableString,
-  previewTo: null as NullableString,
-};
 
-function setFrom(fromId: string) {
-  id.from = fromId;
-}
-function resetFrom() {
-  id.from = null;
-}
-function setTo(toId: string) {
-  id.to = toId;
-}
-function resetTo() {
-  id.to = null;
-}
-function setPreviewTo(previewToId: string) {
-  id.previewTo = previewToId;
-}
-function resetPreviewTo() {
-  id.to = null;
-}
-function getIds() {
-  return id;
-}
-function reset() {
-  id.from = null;
-  id.to = null;
-  id.previewTo = null;
-}
+export class DftIds {
+  #from: NullableString;
+  #to: NullableString;
+  #previewTo: NullableString;
 
-export const ids = {
-  setFrom,
-  resetFrom,
-  setTo,
-  resetTo,
-  setPreviewTo,
-  resetPreviewTo,
-  getIds,
-  reset,
-};
+  constructor() {
+    this.#from = null;
+    this.#to = null;
+    this.#previewTo = null;
+  }
+  setFrom(fromId: string) {
+    this.#from = fromId;
+  }
+  resetFrom() {
+    this.#from = null;
+  }
+  setTo(toId: string) {
+    this.#to = toId;
+  }
+  resetTo() {
+    this.#to = null;
+  }
+  setPreviewTo(previewToId: string) {
+    this.#previewTo = previewToId;
+  }
+  resetPreviewTo() {
+    this.#to = null;
+  }
+  getIds() {
+    return {
+      from: this.#from,
+      to: this.#to,
+      previewTo: this.#previewTo,
+    };
+  }
+  reset() {
+    this.#from = null;
+    this.#to = null;
+    this.#previewTo = null;
+  }
+}

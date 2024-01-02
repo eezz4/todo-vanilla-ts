@@ -1,8 +1,10 @@
 import { createElementClassname } from "../../domUtil/createElementExtend";
 import { sleep } from "../../promiseUtil/sleep";
-import { DRAG_CUSTOM_EVENT } from "../DRAG_CUSTOM_EVENT";
-import { applyDragFromTo } from "../index";
-import { gState } from "../units/gState";
+
+import { DragFromTo } from "../index";
+import { DftCustomEvent } from "../public";
+import { DftElementCtrl } from "../units/ElementCtrl";
+import { DftHighlight } from "../units/Highlight";
 
 const RUN_WAIT_TIME = 1;
 const neverSkipCond = () => false;
@@ -23,6 +25,7 @@ const dispatchBubble = (
   element: HTMLElement,
   type: keyof HTMLElementEventMap
 ) => element.dispatchEvent(new Event(type, { bubbles: true }));
+
 const dispatchBubbleKeydownEscape = (element: HTMLElement) =>
   element.dispatchEvent(
     new KeyboardEvent("keydown", {
@@ -31,48 +34,88 @@ const dispatchBubbleKeydownEscape = (element: HTMLElement) =>
     })
   );
 
-describe("dragFromTo 모듈 import", () => {
-  test("모듈 import 시, classname gDragElement 요소가 존재해야 한다.", () => {
-    const gDragElement = document.querySelector(".gDragElement");
+describe("dragFromTo 모듈 생성", () => {
+  let listViewContainer: HTMLElement;
+  beforeEach(() => {
+    window.getComputedStyle = jest.fn().mockImplementation(() => []);
+    listViewContainer = document.createElement("div");
+    document.body.appendChild(listViewContainer);
+  });
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  test(`DragFromTo 생성 시, .${DftElementCtrl.CLASS_NAME} 요소가 존재해야 한다.`, () => {
+    let gDragElement = listViewContainer.querySelector(
+      `.${DftElementCtrl.CLASS_NAME}`
+    );
+    expect(gDragElement).toBeFalsy();
+
+    new DragFromTo(listViewContainer, RUN_WAIT_TIME, neverSkipCond);
+
+    gDragElement = listViewContainer.querySelector(
+      `.${DftElementCtrl.CLASS_NAME}`
+    );
     expect(gDragElement).toBeTruthy();
   });
 });
 
 describe("drag 생명 주기 관련 동작", () => {
   let itemElement1: HTMLElement;
+  let dragFromTo: DragFromTo | null = null;
 
+  let listViewContainer: HTMLElement;
   beforeEach(() => {
-    itemElement1 = createElementClassname(document.body, "div");
-    applyDragFromTo(itemElement1, "", neverSkipCond, RUN_WAIT_TIME);
+    window.getComputedStyle = jest.fn().mockImplementation(() => []);
+    listViewContainer = document.createElement("div");
+    document.body.appendChild(listViewContainer);
 
-    dispatchBubble(document.body, "mouseup"); // 종료: 글로벌 변수 초기화
+    dragFromTo = new DragFromTo(
+      listViewContainer,
+      RUN_WAIT_TIME,
+      neverSkipCond
+    );
+    itemElement1 = createElementClassname(listViewContainer, "div");
+    dragFromTo.applyDragFromTo(itemElement1, "");
+  });
+  afterEach(() => {
+    document.body.innerHTML = "";
   });
 
   test("시작 성공: 조건 및 변경 사항", async () => {
-    expect(gState.run).toBe(false);
-    const gDragElement = document.querySelector(".gDragElement");
+    expect(dragFromTo?.isRun()).toBe(false);
+
+    const gDragElement = document.querySelector(
+      `.${DftElementCtrl.CLASS_NAME}`
+    );
 
     // 시작 시도
     dispatchBubble(itemElement1, "mousedown");
 
     // 1-1. 미시작
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
+
     // 1-2. 미변경 초기 상태
-    expect(itemElement1.classList.contains("dragFrom")).toBeFalsy();
     expect(gDragElement?.firstChild).toBeNull();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeFalsy();
 
     // 조건: 일정 시간
     await sleep(RUN_WAIT_TIME + 1);
 
     // 2-1. 시작 성공
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
+
     // 2-2. 변경 상태
-    expect(itemElement1.classList.contains("dragFrom")).toBeTruthy();
     expect(gDragElement?.firstChild).toBeTruthy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeTruthy();
   });
 
   test("시작 미실행 조건", async () => {
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 시작 시도
     dispatchBubble(itemElement1, "mousedown");
@@ -80,7 +123,7 @@ describe("drag 생명 주기 관련 동작", () => {
     // 1. 동일 엘리먼트 mouseleave
     dispatchBubble(itemElement1, "mouseleave");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 시작 시도
     dispatchBubble(itemElement1, "mousedown");
@@ -88,7 +131,7 @@ describe("drag 생명 주기 관련 동작", () => {
     // 2. 동일 엘리먼트 mouseup 버블링
     dispatchBubble(itemElement1, "mouseup");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 시작 시도
     dispatchBubble(itemElement1, "mousedown");
@@ -96,7 +139,7 @@ describe("drag 생명 주기 관련 동작", () => {
     // 4. body mouseup 버블링
     dispatchBubble(document.body, "mouseup");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 시작 시도
     dispatchBubble(itemElement1, "mousedown");
@@ -104,54 +147,52 @@ describe("drag 생명 주기 관련 동작", () => {
     // 4. Escape 키
     dispatchBubbleKeydownEscape(document.body);
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
   });
 
   test("시작 이후 종료 조건", async () => {
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 시작
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 1. 시작 이후, mouseleave 미종료
     dispatchBubble(itemElement1, "mouseleave");
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 종료 후 재시작
     dispatchBubble(itemElement1, "mouseup");
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 2. 동일 element mouse up 종료
     dispatchBubble(itemElement1, "mouseup");
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 재시작
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 3. body mouse up 종료
     dispatchBubble(document.body, "mouseup");
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 재시작
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 4. esc 종료
     dispatchBubbleKeydownEscape(document.body);
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
   });
 
   test("click delegation 컨트롤", async () => {
-    // delegationClick 컨트롤 테스트 global 제약 사항
-    // 드래그 종료 후, delegationClick 초기화 타이밍이 존재함.
     await sleep(0);
 
     function checkBodyClickDelegation() {
@@ -167,14 +208,14 @@ describe("drag 생명 주기 관련 동작", () => {
     }
 
     // 1. 실행 중이 아닐 때는 click을 받을 수 있다.
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
     let delegetion = await checkBodyClickDelegation();
     expect(delegetion).toBe(true);
 
     // 시작
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // 2. 실행 중일 때는 click을 받지 못한다.
     delegetion = await checkBodyClickDelegation();
@@ -182,7 +223,7 @@ describe("drag 생명 주기 관련 동작", () => {
 
     // 종료
     dispatchBubble(itemElement1, "mouseup");
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
 
     // 3. mouseup과 이어지는 동기적 click은 무시된다.
     delegetion = await checkBodyClickDelegation();
@@ -194,86 +235,142 @@ describe("drag 생명 주기 관련 동작", () => {
   });
 });
 
-describe("to타겟 선정 및 delegation DRAG_CUSTOM_EVENT", () => {
+describe("to타겟 선정 및 delegation CustomEvent", () => {
   let itemElement1: HTMLElement;
   let itemElement2: HTMLElement;
   let itemElement3: HTMLElement;
+  let dragFromTo: DragFromTo | null = null;
 
+  let listViewContainer: HTMLElement;
   beforeEach(() => {
-    itemElement1 = createElementClassname(document.body, "div", C.classname[1]);
-    applyDragFromTo(itemElement1, C.id[1], neverSkipCond, RUN_WAIT_TIME);
-    itemElement2 = createElementClassname(document.body, "div", C.classname[2]);
-    applyDragFromTo(itemElement2, C.id[2], neverSkipCond, RUN_WAIT_TIME);
-    itemElement3 = createElementClassname(document.body, "div", C.classname[3]);
-    applyDragFromTo(itemElement3, C.id[3], neverSkipCond, RUN_WAIT_TIME);
+    window.getComputedStyle = jest.fn().mockImplementation(() => []);
+    listViewContainer = document.createElement("div");
+    document.body.appendChild(listViewContainer);
+    dragFromTo = new DragFromTo(
+      listViewContainer,
+      RUN_WAIT_TIME,
+      neverSkipCond
+    );
 
-    dispatchBubble(document.body, "mouseup"); // 종료: 글로벌 변수 초기화
+    itemElement1 = createElementClassname(
+      listViewContainer,
+      "div",
+      C.classname[1]
+    );
+    dragFromTo.applyDragFromTo(itemElement1, C.id[1]);
+    itemElement2 = createElementClassname(
+      listViewContainer,
+      "div",
+      C.classname[2]
+    );
+    dragFromTo.applyDragFromTo(itemElement2, C.id[2]);
+    itemElement3 = createElementClassname(
+      listViewContainer,
+      "div",
+      C.classname[3]
+    );
+    dragFromTo.applyDragFromTo(itemElement3, C.id[3]);
+  });
+  afterEach(() => {
+    document.body.innerHTML = "";
   });
 
   test("to타겟 선정", async () => {
     // 초기 상태
-    expect(itemElement1.classList.contains("dragFrom")).toBeFalsy();
-    expect(itemElement1.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement2.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement3.classList.contains("dragTo")).toBeFalsy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeFalsy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement2.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement3.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
 
     // 시작한다.
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // itemElement1 -> itemElement2 이동한다.
     dispatchBubble(itemElement1, "mouseleave");
     dispatchBubble(itemElement2, "mouseenter");
 
     // 1. 상태 변경 확인
-    expect(itemElement1.classList.contains("dragFrom")).toBeTruthy();
-    expect(itemElement1.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement2.classList.contains("dragTo")).toBeTruthy();
-    expect(itemElement3.classList.contains("dragTo")).toBeFalsy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeTruthy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement2.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeTruthy();
+    expect(
+      itemElement3.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
 
     // itemElement2 -> itemElement3 이동한다.
     dispatchBubble(itemElement2, "mouseleave");
     dispatchBubble(itemElement3, "mouseenter");
 
     // 2. 상태 변경 확인
-    expect(itemElement1.classList.contains("dragFrom")).toBeTruthy();
-    expect(itemElement1.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement2.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement3.classList.contains("dragTo")).toBeTruthy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeTruthy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement2.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement3.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeTruthy();
 
     // itemElement3 -> itemElement1 이동한다.
     dispatchBubble(itemElement3, "mouseleave");
     dispatchBubble(itemElement1, "mouseenter");
 
     // 3. 상태 변경 확인
-    expect(itemElement1.classList.contains("dragFrom")).toBeTruthy();
-    expect(itemElement1.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement2.classList.contains("dragTo")).toBeFalsy();
-    expect(itemElement3.classList.contains("dragTo")).toBeFalsy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.from}`)
+    ).toBeTruthy();
+    expect(
+      itemElement1.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement2.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
+    expect(
+      itemElement3.classList.contains(`${DftHighlight.CLASS_NAME.to}`)
+    ).toBeFalsy();
   });
 
-  test("delegation DRAG_CUSTOM_EVENT", async () => {
+  test("delegation CustomEvent", async () => {
     const PREVIEW_TIME = 1200;
     let actualCustomEvnet = "";
     let actualDetail = null;
-    document.body.addEventListener(DRAG_CUSTOM_EVENT.SUCCESS, (e) => {
-      actualCustomEvnet = DRAG_CUSTOM_EVENT.SUCCESS;
+    listViewContainer.addEventListener(DftCustomEvent.SUCCESS, (e) => {
+      actualCustomEvnet = DftCustomEvent.SUCCESS;
       actualDetail = (e as CustomEvent).detail;
     });
-    document.body.addEventListener(DRAG_CUSTOM_EVENT.PREVIEW, (e) => {
-      actualCustomEvnet = DRAG_CUSTOM_EVENT.PREVIEW;
+    listViewContainer.addEventListener(DftCustomEvent.PREVIEW, (e) => {
+      actualCustomEvnet = DftCustomEvent.PREVIEW;
       actualDetail = (e as CustomEvent).detail;
     });
-    document.body.addEventListener(DRAG_CUSTOM_EVENT.CANCEL, (e) => {
-      actualCustomEvnet = DRAG_CUSTOM_EVENT.CANCEL;
+    listViewContainer.addEventListener(DftCustomEvent.CANCEL, (e) => {
+      actualCustomEvnet = DftCustomEvent.CANCEL;
       actualDetail = (e as CustomEvent).detail;
     });
 
     // itemElement1 시작한다.
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
 
     // itemElement1 -> itemElement2 이동한다.
     dispatchBubble(itemElement1, "mouseleave");
@@ -287,21 +384,21 @@ describe("to타겟 선정 및 delegation DRAG_CUSTOM_EVENT", () => {
     await sleep(PREVIEW_TIME);
 
     // 2. previwe 받음
-    expect(actualCustomEvnet).toBe(DRAG_CUSTOM_EVENT.PREVIEW);
+    expect(actualCustomEvnet).toBe(DftCustomEvent.PREVIEW);
     expect(actualDetail).toEqual({ fromId: C.id[1], toId: C.id[2] });
 
     // mouse up
     dispatchBubble(itemElement2, "mouseup");
 
     // 3. success 받음
-    expect(actualCustomEvnet).toBe(DRAG_CUSTOM_EVENT.SUCCESS);
+    expect(actualCustomEvnet).toBe(DftCustomEvent.SUCCESS);
     expect(actualDetail).toEqual({ fromId: C.id[1], toId: C.id[2] });
 
     // itemElement1 재시작한다.
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
     dispatchBubble(itemElement1, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
     // itemElement1 -> itemElement2 이동한다.
     dispatchBubble(itemElement1, "mouseleave");
     dispatchBubble(itemElement2, "mouseenter");
@@ -311,14 +408,14 @@ describe("to타겟 선정 및 delegation DRAG_CUSTOM_EVENT", () => {
     dispatchBubbleKeydownEscape(document.body);
 
     // 4. cancel 받음
-    expect(actualCustomEvnet).toBe(DRAG_CUSTOM_EVENT.CANCEL);
+    expect(actualCustomEvnet).toBe(DftCustomEvent.CANCEL);
     expect(actualDetail).toEqual(null);
 
     // itemElement3 재시작한다.
-    expect(gState.run).toBe(false);
+    expect(dragFromTo?.isRun()).toBe(false);
     dispatchBubble(itemElement3, "mousedown");
     await sleep(RUN_WAIT_TIME + 1);
-    expect(gState.run).toBe(true);
+    expect(dragFromTo?.isRun()).toBe(true);
     // itemElement3 -> itemElement1 이동한다.
     dispatchBubble(itemElement3, "mouseleave");
     dispatchBubble(itemElement1, "mouseenter");
@@ -326,7 +423,7 @@ describe("to타겟 선정 및 delegation DRAG_CUSTOM_EVENT", () => {
     dispatchBubble(itemElement1, "mouseup");
 
     // 5. success 받음
-    expect(actualCustomEvnet).toBe(DRAG_CUSTOM_EVENT.SUCCESS);
+    expect(actualCustomEvnet).toBe(DftCustomEvent.SUCCESS);
     expect(actualDetail).toEqual({ fromId: C.id[3], toId: C.id[1] });
   });
 });
