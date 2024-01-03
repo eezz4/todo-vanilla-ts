@@ -1,6 +1,5 @@
 import { arrayUtil } from "../../../../module/arrayUtil/arrayUtil";
 import { addOnceEventListener } from "../../../../module/domUtil/addOnceEventListener";
-import { DragFromTo } from "../../../../module/dragFromTo/index";
 import { DftCustomEvent } from "../../../../module/dragFromTo/public";
 import { TodoStore } from "../../../store/createTodoStore";
 import { createTodoElement } from "./createTodoElement";
@@ -37,21 +36,11 @@ type VisibleTodoItem = {
   completed: boolean;
 };
 
-let sigleInstanceDragFromTo: DragFromTo | null = null;
-function getDragFromToSingleton(container: HTMLElement | null) {
-  if (container === null)
-    throw new Error("new DragFromTo requires a non-null container.");
-  if (sigleInstanceDragFromTo === null)
-    sigleInstanceDragFromTo = new DragFromTo(container, 800, skipElementCond);
-  return sigleInstanceDragFromTo;
-}
-
 function reflowElement(
   todoListView: HTMLElement,
   todoStore: TodoStore,
   visibleItems: VisibleTodoItem[]
 ) {
-  const dragFromToInstance = getDragFromToSingleton(todoListView.parentElement);
   // 2. reuse OR create element
   const visibleIdSet = new Set(visibleItems.map((v) => v.id));
   const todoElementMap = makeTodoElementMap(todoListView, visibleIdSet);
@@ -70,21 +59,12 @@ function reflowElement(
       text: v.text,
       completed: v.completed,
     });
-    // draggable
-    dragFromToInstance.applyDragFromTo(todoElement, v.id);
+
     return todoElement;
   });
 
   // 3. reflow
   todoListView.replaceChildren(...todoElements);
-}
-
-function skipElementCond(element: HTMLElement) {
-  if (element.tagName === "BUTTON") return true;
-  for (const classname of element.classList) {
-    if (classname === "completed") return true;
-  }
-  return false;
 }
 
 function getItemsWithFilter(todoStore: TodoStore) {
