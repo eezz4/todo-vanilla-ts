@@ -13,6 +13,7 @@ export function createTodoElement(
   const todoElement = createElementClassname(todoListView, "li", "todoElement");
   todoElement.id = element.id;
   if (element.completed) todoElement.classList.add("completed");
+  todoElement.dataset.completed = String(element.completed);
 
   // content
   const content = createElementClassname(todoElement, "span", "content");

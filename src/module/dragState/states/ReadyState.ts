@@ -8,14 +8,14 @@ export class ReadyState implements iDragState {
   #timeout: NodeJS.Timeout;
 
   constructor(parent: Dragger) {
-    console.log("ReadyState");
     this.#parent = parent;
+
     document.body.addEventListener("mouseup", this.#onMouseUp);
     document.body.addEventListener("mousemove", this.#onMouseMove);
     document.body.addEventListener("keydown", this.#onKeyDown);
     this.#timeout = setTimeout(() => {
-      this.#ok();
-    }, 500);
+      this.#start();
+    }, this.#parent.readyTime);
   }
 
   #onMouseMove = (e: MouseEvent) => {
@@ -29,7 +29,9 @@ export class ReadyState implements iDragState {
     const cancel = this.#parent.keyboardCb("try_cancel", e);
     if (cancel) this.#cancel();
   };
-  #ok() {
+
+  #start() {
+    this.#parent.mouseCb("ready_start_dragging");
     this.#removeHandlers();
     this.#parent.changeState(new DraggingState(this.#parent));
   }

@@ -6,8 +6,8 @@ export class InitState implements iDragState {
   #parent: Dragger;
 
   constructor(parent: Dragger) {
-    console.log("InitState");
     this.#parent = parent;
+
     this.#parent.containerForInit.addEventListener(
       "mousedown",
       this.#onMouseDown
@@ -15,7 +15,7 @@ export class InitState implements iDragState {
   }
 
   #onMouseDown = (e: MouseEvent) => {
-    const ok = this.#parent.mouseCb("init_down_ok", e);
+    const ok = this.#parent.mouseCb("init_down_try", e);
     if (ok) {
       this.#parent.containerForInit.removeEventListener(
         "mousedown",

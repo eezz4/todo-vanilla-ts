@@ -29,6 +29,7 @@ function reflowElement(
       const todoElement = todoElementMap.get(v.id)!;
       if (v.completed) todoElement.classList.add("completed");
       else todoElement.classList.remove("completed");
+      todoElement.dataset.completed = String(v.completed);
       return todoElement;
     }
 

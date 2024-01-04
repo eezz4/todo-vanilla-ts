@@ -5,12 +5,14 @@ import { StateType, iDragState } from "./index";
 export class DraggingState implements iDragState {
   #parent: Dragger;
   constructor(parent: Dragger) {
-    console.log("DraggingState");
     this.#parent = parent;
+
     document.body.addEventListener("mousemove", this.#onMouseMove);
     document.body.addEventListener("mouseup", this.#onMouseUp);
     document.body.addEventListener("keydown", this.#onKeyDown);
+    document.body.addEventListener("click", DraggingState.#stopFunc, true);
   }
+
   #onMouseMove = (e: MouseEvent) => {
     this.#parent.mouseCb("dragging_move", e);
   };
@@ -21,6 +23,9 @@ export class DraggingState implements iDragState {
     const cancel = this.#parent.keyboardCb("try_cancel", e);
     if (cancel) this.#cancel();
   };
+  static #stopFunc(e: MouseEvent) {
+    e.stopPropagation();
+  }
 
   #end(e: MouseEvent) {
     this.#removeHandlers();
@@ -36,6 +41,9 @@ export class DraggingState implements iDragState {
     document.body.removeEventListener("mouseup", this.#onMouseUp);
     document.body.removeEventListener("mousemove", this.#onMouseMove);
     document.body.removeEventListener("keydown", this.#onKeyDown);
+    setTimeout(() => {
+      document.body.removeEventListener("click", DraggingState.#stopFunc, true);
+    });
   }
 
   getType(): StateType {
