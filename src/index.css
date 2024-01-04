@@ -22,6 +22,8 @@ body,
   width: 100%;
   height: 100%;
   margin: 0;
+
+  overflow: hidden;
 }
 /* module container css */
 .todoModuleConatiner {
@@ -30,7 +32,6 @@ body,
   display: flex;
   align-items: center;
   justify-content: center;
-  /* overflow: hidden; */
 }
 
 /* todo */
@@ -68,11 +69,14 @@ body,
   user-select: none;
   display: flex;
   justify-content: space-between;
-  padding: 10px;
   cursor: pointer;
 }
-
-.todoElement.completed > .content {
+.todoElement .content {
+  display: flex;
+  align-items: center;
+  margin: 10px;
+}
+.todoElement.completed .content {
   text-decoration: line-through;
 }
 
@@ -81,20 +85,20 @@ body,
 }
 
 /* drag */
+.gDragElement {
+  position: absolute;
+  opacity: 0.5;
+  outline: 2px solid green;
+  pointer-events: none;
+}
+
 .todoElement.dragFrom {
   opacity: 0.5;
   background-color: green;
 }
-.todoElement.dragTo {
-  border-bottom: 10px solid green;
-}
-.gDragElement {
-  position: absolute;
-  opacity: 0.5;
-  background-color: white;
-}
-.gDragElement > * {
-  border: 1px solid green;
+.todoElement .deleteBtn {
+  margin: 2px;
+  padding: 10px;
 }
 
 /* info view */

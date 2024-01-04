@@ -1,3 +1,4 @@
+import { cloneElementForDrag } from "../../../module/domUtil/cloneElementForDrag";
 import { createElementClassname } from "../../../module/domUtil/createElementExtend";
 import { Dragger } from "../../../module/dragState/index";
 import { TodoStore } from "../../store/createTodoStore";
@@ -5,10 +6,17 @@ import { updateTodoList } from "./units/updateTodoList";
 
 export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
   const todoListView = createElementClassname(parent, "ul", "todoListView");
+  const dragElement = createElementClassname(parent, "div", "gDragElement");
+  dragElement.style.display = "none";
 
   const state = {
-    from: -1,
-    to: -1,
+    from: null as HTMLElement | null,
+    to: null as HTMLElement | null,
+
+    startPageX: 0,
+    startPageY: 0,
+    offsetX: 0,
+    offsetY: 0,
   };
   new Dragger(
     todoListView,
@@ -25,9 +33,14 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
           const eleTodo = eleTarget.closest(".todoElement");
           if (eleTodo === null || !(eleTodo instanceof HTMLLIElement))
             return false;
-
           if (eleTodo.dataset.completed === "true") return false;
-          state.from = Number(eleTodo.id);
+          state.from = eleTodo;
+
+          state.startPageX = e.pageX;
+          state.startPageY = e.pageY;
+          const rect = state.from.getBoundingClientRect();
+          state.offsetX = state.startPageX - rect.left;
+          state.offsetY = state.startPageY - rect.top;
           return true;
         }
         case "ready_move_try_cancel": {
@@ -40,33 +53,62 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
           if (eleTodo === null || !(eleTodo instanceof HTMLLIElement))
             return false;
 
-          return state.from !== Number(eleTodo.id);
+          if (state.from === eleTodo) {
+            state.startPageX = e.pageX;
+            state.startPageY = e.pageY;
+
+            const rect = state.from.getBoundingClientRect();
+            state.offsetX = state.startPageX - rect.left;
+            state.offsetY = state.startPageY - rect.top;
+            return false;
+          }
+          return true;
         }
         case "ready_start_dragging": {
-          console.log("ready_start_dragging::: ");
-          // render dragElement
+          if (state.from === null) throw new Error("dev error");
+          dragElement.appendChild(cloneElementForDrag(state.from));
+          dragElement.style.display = "";
+          dragElement.style.left = state.startPageX - state.offsetX + "px";
+          dragElement.style.top = state.startPageY - state.offsetY + "px";
+
+          state.from.style.opacity = "0.5";
+          state.from.style.background = "green";
           return;
         }
         case "dragging_move":
           {
             if (e === undefined) throw new Error("dev bug");
             if (!(e.target instanceof Element)) return;
-            const eleTarget = e.target as Element;
+            if (state.to) state.to.style.borderBottom = "";
 
+            dragElement.style.left = e.pageX - state.offsetX + "px";
+            dragElement.style.top = e.pageY - state.offsetY + "px";
+
+            const eleTarget = e.target as Element;
             const eleTodo = eleTarget.closest(".todoElement");
             if (
               eleTodo &&
               eleTodo instanceof HTMLLIElement &&
               eleTodo.dataset.completed === "false"
             )
-              state.to = Number(eleTodo.id);
-            else state.to = -1;
+              state.to = eleTodo;
+            else {
+              state.to = null;
+            }
+            if (state.to) state.to.style.borderBottom = "20px solid green";
           }
           break;
         case "dragging_end":
           {
             console.log("state.from::: ", state.from);
             console.log("state.to::: ", state.to);
+            dragElement.innerHTML = "";
+            dragElement.style.display = "none";
+            if (state.to) state.to.style.borderBottom = "";
+            if (state.from) {
+              state.from.style.opacity = "";
+              state.from.style.background = "";
+            }
           }
           break;
         default:
@@ -84,7 +126,13 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
       return false;
     },
     () => {
-      console.log("cancel");
+      dragElement.innerHTML = "";
+      dragElement.style.display = "none";
+      if (state.to) state.to.style.borderBottom = "";
+      if (state.from) {
+        state.from.style.opacity = "";
+        state.from.style.background = "";
+      }
     }
   );
 
