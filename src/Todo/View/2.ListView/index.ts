@@ -1,5 +1,4 @@
 import { createElementClassname } from "../../../module/domUtil/createElementExtend";
-import { DftCustomEvent } from "../../../module/dragFromTo/public";
 import { Dragger } from "../../../module/dragState/index";
 import { TodoStore } from "../../store/createTodoStore";
 import { updateTodoList } from "./units/updateTodoList";
@@ -58,16 +57,6 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
     });
   };
 
-  todoListView.addEventListener(DftCustomEvent.SUCCESS, (e: Event) => {
-    todoStore.dispatch({
-      type: "TodoActionMove",
-      payload: (e as CustomEvent).detail,
-    });
-  });
-  todoListView.addEventListener(DftCustomEvent.CANCEL, () => {
-    updateTodoList(todoListView, todoStore);
-  });
-
   // init render
   updateTodoList(todoListView, todoStore);
 
@@ -82,12 +71,4 @@ function findParentLIExcludeBtn(element: HTMLElement | null) {
     element = element.parentElement;
   }
   return null;
-}
-
-function skipElementCond(element: HTMLElement) {
-  if (element.tagName === "BUTTON") return true;
-  for (const classname of element.classList) {
-    if (classname === "completed") return true;
-  }
-  return false;
 }

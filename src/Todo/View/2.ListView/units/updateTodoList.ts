@@ -1,6 +1,3 @@
-import { arrayUtil } from "../../../../module/arrayUtil/arrayUtil";
-import { addOnceEventListener } from "../../../../module/domUtil/addOnceEventListener";
-import { DftCustomEvent } from "../../../../module/dragFromTo/public";
 import { TodoStore } from "../../../store/createTodoStore";
 import { createTodoElement } from "./createTodoElement";
 
@@ -8,24 +5,6 @@ export function updateTodoList(
   todoListView: HTMLElement,
   todoStore: TodoStore
 ) {
-  // drag
-  addOnceEventListener(todoListView, DftCustomEvent.PREVIEW, (e: Event) => {
-    const filteredItems = getItemsWithFilter(todoStore);
-    const { fromId, toId } = (e as CustomEvent).detail;
-
-    const fromIndex = filteredItems.findIndex((v) => v.id === fromId);
-    const toIndex = filteredItems.findIndex((v) => v.id === toId);
-    if (fromIndex === -1 || toIndex === -1)
-      throw new Error(`dev error fromId:${fromId}, toId:${toId}`);
-
-    const previeweItems = arrayUtil.moveToNext(
-      filteredItems,
-      fromIndex,
-      toIndex
-    );
-    reflowElement(todoListView, todoStore, previeweItems);
-  });
-
   const filteredItems = getItemsWithFilter(todoStore);
   reflowElement(todoListView, todoStore, filteredItems);
 }
