@@ -3,10 +3,9 @@ export function cloneElementForDrag(origin: HTMLElement) {
   cloneStyleAndPointerEventNone(cloned, origin);
   return cloned;
 }
-
 function cloneStyleAndPointerEventNone(
   parentElement: HTMLElement,
-  childElement: HTMLElement
+  childElement: Element
 ) {
   const childStyle = window.getComputedStyle(childElement);
   for (const key of childStyle) {
@@ -15,11 +14,9 @@ function cloneStyleAndPointerEventNone(
   parentElement.style.pointerEvents = "none";
 
   Array.from(parentElement.children).forEach((parent, index) => {
-    if (parent.nodeType === Node.ELEMENT_NODE) {
-      cloneStyleAndPointerEventNone(
-        parent as HTMLElement,
-        childElement.children[index] as HTMLElement
-      );
+    const child = childElement.children[index];
+    if (parent instanceof HTMLElement) {
+      cloneStyleAndPointerEventNone(parent, child);
     }
   });
 }
