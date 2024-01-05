@@ -6,7 +6,7 @@ const expectedHtmlListView = removeWhitespace(`
 <ul class="todoListView"></ul>
 `);
 const expectHtmlListItem = removeWhitespace(
-  `<li class="todoElement" id="1"><span class="content">a</span><button class="deleteBtn">삭제</button></li>`
+  `<li class="todoElement" id="1" data-completed="false"><span class="content">a</span><button class="deleteBtn">삭제</button></li>`
 );
 describe("ListView 확인", () => {
   test("createTodoListView 확인", async () => {

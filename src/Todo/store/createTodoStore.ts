@@ -7,8 +7,8 @@ export function createTodoStore() {
   let maxId = 0;
 
   const state: TodoState = {
-    items: getTestData(),
-    // items: [],
+    // items: getTestData(),
+    items: [],
     filter: "all",
   };
 
