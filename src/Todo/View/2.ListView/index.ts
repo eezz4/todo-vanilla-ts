@@ -100,18 +100,16 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
 
         case "dragging_end":
           {
-            const from = dragLogic.from; // 동기 Flux 디자인
-            const to = dragLogic.to; // 동기 Flux 디자인
-            dragLogic.end();
-            if (from && to) {
+            if (dragLogic.from && dragLogic.to) {
               todoStore.dispatch({
                 type: "TodoActionMove",
                 payload: {
-                  fromId: from.id,
-                  toId: to.id,
+                  fromId: dragLogic.from.id,
+                  toId: dragLogic.to.id,
                 },
               });
             }
+            dragLogic.clean();
           }
           break;
 
@@ -130,13 +128,13 @@ export function createTodoListView(parent: HTMLElement, todoStore: TodoStore) {
       return false;
     },
     () => {
-      dragLogic.end(() => updateTodoList(todoListView, todoStore));
+      dragLogic.clean(() => updateTodoList(todoListView, todoStore));
     }
   );
 
   todoListView.onclick = (e) => {
     if (!(e.target instanceof Element)) return;
-    // 동기 Flux 디자인 => Btn 버블링 무시 필요
+    // 내부 제거 버튼을 무시하는 토글 기능이기 때문에, 상단에서 위임에 대한 처리 필요.
     if (e.target instanceof HTMLButtonElement) return;
     const eleTodo = e.target.closest(".todoElement");
     if (eleTodo instanceof HTMLLIElement) {

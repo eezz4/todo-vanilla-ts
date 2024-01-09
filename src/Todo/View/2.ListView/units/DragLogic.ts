@@ -70,18 +70,27 @@ export class DraggerLogic {
         cbPreview(this.#from.id, this.#previewToId);
       }, 800);
   }
-  end(cbReset?: () => void) {
-    this.#dragElement.innerHTML = "";
-    this.#dragElement.style.display = "none";
-    if (this.#from) {
-      this.#from.style.opacity = "";
-      this.#from.style.background = "";
-    }
+
+  clean(cbReset?: () => void) {
+    this.#cleanDrag();
+    this.#cleanFrom();
     this.cleanTo();
     if (this.#previewRunning) {
       cbReset?.();
     }
     this.#previewRunning = false;
+  }
+
+  #cleanDrag() {
+    this.#dragElement.innerHTML = "";
+    this.#dragElement.style.display = "none";
+  }
+  #cleanFrom() {
+    if (this.#from) {
+      this.#from.style.opacity = "";
+      this.#from.style.background = "";
+    }
+    this.#from = null;
   }
   cleanTo() {
     if (this.#to) this.#to.style.borderBottom = "";
