@@ -5,6 +5,7 @@ export type TodoStore = ReturnType<typeof createTodoStore>;
 
 export function createTodoStore() {
   let maxId = 0;
+  let timeoutId: NodeJS.Timeout | undefined = undefined;
 
   const state: TodoState = {
     // items: getTestData(),
@@ -16,10 +17,13 @@ export function createTodoStore() {
   function subscribe(render: TodoRenderFunction) {
     listener.push(render);
   }
+
   /**
-   * @description Always Sync render, whether immutable or not.
+   * @description queue를 사용하지 않고, 다중 디스패치에 대한 렌더링 횟수 감소
    */
   function dispatch(action: TodoAction) {
+    clearTimeout(timeoutId);
+
     switch (action.type) {
       case "TodoActionCreate":
         {
@@ -92,7 +96,9 @@ export function createTodoStore() {
         );
     }
 
-    listener.forEach((render) => render());
+    timeoutId = setTimeout(() => {
+      listener.forEach((render) => render());
+    });
   }
 
   return {

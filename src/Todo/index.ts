@@ -16,10 +16,7 @@ export function makeTodoModule(parent: HTMLElement) {
 function createTodoModuleOnce(parent: HTMLElement) {
   const MODUEL_ID = "TODO_MODULE";
   for (const child of parent.childNodes) {
-    if (
-      child.nodeType === Node.ELEMENT_NODE &&
-      (child as HTMLElement).id === MODUEL_ID
-    )
+    if (child instanceof Element && child.id === MODUEL_ID)
       throw new Error("todoModule은 이미 존재합니다.");
   }
   return createElementClassname(parent, "div", "todoModule");
